@@ -129,54 +129,27 @@ def top_down(knapsack_weight, items):
             S: the max benefit, the items stored in the knapsack and the total 
             weight of those items
     """
-    n = len(items)
-
-    #Matrix used for Memoization
-    tmp = [[0 for x in range(knapsack_weight + 1)] for x in range(n + 1)] 
-
-    for i in range(n + 1):
-        for j in range(knapsack_weight + 1): 
-            if i == 0 or j == 0: 
-                tmp[i][j] = 0
-            elif items[i-1][0] <= j:
-                max_chosen = max(items[i-1][1]  + tmp[i-1][j-items[i-1][0]],  tmp[i-1][j])
-                tmp[i][j] = max_chosen
-            else: 
-                tmp[i][j] = tmp[i-1][j]
-    
-    #Find the items entered in the backpack
-    best_benefit = tmp[n][knapsack_weight]
-    best_weight, best_items = find_items(tmp, items, knapsack_weight)
-    
-    return [best_benefit, best_items, best_weight]
-
-def top_down(knapsack_weight, items):
-    """ Function that solves the knapsack problem with top-down
-            E: the knapsack weight and the items
-            S: the max benefit, the items stored in the knapsack and the total 
-            weight of those items
-    """
     tmp = [[-1 for i in range(knapsack_weight + 1)] for j in range(len(items))]
     return top_down_recursive(tmp, knapsack_weight, items, 0)
 
 
 def top_down_recursive(matrix, knapsack_weight, items, ind):
 
-  if knapsack_weight <= 0 or ind >= len(items):
-    return 0
+    if knapsack_weight <= 0 or ind >= len(items):
+        return 0
 
-  if matrix[ind][knapsack_weight] != -1:
+    if matrix[ind][knapsack_weight] != -1:
+        return matrix[ind][knapsack_weight]
+
+    profit1 = 0
+    if items[ind][0] <= knapsack_weight:
+        profit1 = items[ind][1] + top_down_recursive(matrix, knapsack_weight - items[ind][0], items, ind + 1)
+
+    # recursive call after excluding the element at the currentIndex
+    profit2 = top_down_recursive(matrix, knapsack_weight, items, ind + 1)
+
+    matrix[ind][knapsack_weight] = max(profit1, profit2)
     return matrix[ind][knapsack_weight]
-
-  profit1 = 0
-  if items[ind][0] <= knapsack_weight:
-    profit1 = items[ind][1] + top_down_recursive(matrix, knapsack_weight - items[ind][0], items, ind + 1)
-
-  # recursive call after excluding the element at the currentIndex
-  profit2 = top_down_recursive(matrix, knapsack_weight, items, ind + 1)
-
-  matrix[ind][knapsack_weight] = max(profit1, profit2)
-  return matrix[ind][knapsack_weight]
 
 def find_items(matrix, items, knapsack_weight):
     """ Gets stored knapsack items from matrix 
@@ -263,7 +236,7 @@ def main(args):
     if algorithm == 1:
         max_benefit, saved_items, total_weight = brute_force(knapsack_weight, items)
     elif algorithm == 2:
-        #botton_up
+        #bottom_up
         max_benefit, saved_items, total_weight = bottom_up(knapsack_weight,items) 
         pass
     else:
