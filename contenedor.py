@@ -1,12 +1,13 @@
 import sys 
 from sympy import Rational
 from random import randrange
+import copy
 
 def read_file(file_name):
     """ Function in charge or reading the txt file
-            E: string with the problem's path
-            S: a list with the knapsack weight and a list of tuples with the weight
-                and benefits of each item
+        E: string with the problem's path
+        S: a list with the knapsack weight and a list of tuples with the
+            weight and benefits of each item
     """
     items = []
     count = 0
@@ -30,9 +31,10 @@ def read_file(file_name):
     return [knapsack_weight, items]
 
 def generate_items(number_of_items, weight_range, benefit_range):
-    """ Function that generates a number of items with a random weight and benefit
-            E: number of items to generate, the weight and benefit range
-            S: a list of tuples with the weight and benefits of each item
+    """ Function that generates a number of items with a random weight 
+        and benefit
+        E: number of items to generate, the weight and benefit range
+        S: a list of tuples with the weight and benefits of each item
     """
     items = []
 
@@ -43,19 +45,60 @@ def generate_items(number_of_items, weight_range, benefit_range):
     
     return items
 
+def brute_force(knapsack_weight, items):
+    """ Function that solves the knapsack problem with brute force, using a 
+        list of 0's and 1's that represent all the posibles combinations of
+        the items
+        E: the knapsack weight and the items
+        S: the max benefit, the items stored in the knapsack and the total 
+        weight of those items
+
+        This is a brute force algorithm adaptation from Maya Hristakeva and Dipti Shrestha
+        http://www.micsymposium.org/mics_2005/papers/paper102.pdf
+    """
+    n = len(items)
+    best_benefit = 0
+    best_weight = 0
+    best_items = []
+    temp_items = [0 for _ in range(0, n)]
+
+    #Iterating through all possible combinations of the items
+    for _ in range(0, 2**n):
+        j = n-1
+        temp_weight = 0
+        temp_benefit = 0
+        while temp_items[j] != 0 and j >= 0:
+            temp_items[j] = 0
+            j -= 1
+        temp_items[j] = 1
+        for k in range(0, n):
+            if temp_items[k] == 1:
+                temp_weight += items[k][0]
+                temp_benefit += items[k][1]
+        if temp_benefit > best_benefit and temp_weight <= knapsack_weight:
+            best_benefit = temp_benefit
+            best_weight = temp_weight
+            best_items = copy.deepcopy(temp_items)
+    
+    best_items = [(x+1, items[x]) for x in range(0, n) if best_items[x] == 1]
+    return [best_benefit, best_items, best_weight]
+
 def main(args):
     """ Function that executes the program and receives the arguments
             E: the arguments given in the console
             S: N/A
     """
-    if len(args) > 2: #Algorithm
-        if not(args[1].isdigit()):
+    if len(args) > 2: 
+        if not(args[1].isdigit()): #Algorithm validation
             print("First argument must be an integer between 1,2,3")
             quit()
-        if not(args[-1].isdigit()): #Iterations
+        if not(args[-1].isdigit()): #Iterations validation
             print("Last argument must be an integer")
             quit()
         algorithm = Rational(args[1])
+        if algorithm not in [1, 2, 3]: #Algorithm validation
+            print("First argument must be an integer between 1,2,3")
+            quit()
         iterations = Rational(args[-1])
 
     if len(args) == 5: # if it's for reading a file
@@ -89,6 +132,21 @@ def main(args):
     print("Iterations: " + str(iterations))
     print("Knapsack weight: " + str(knapsack_weight))
     print("Items: " + str(items))
+
+    if algorithm == 1:
+        max_benefit, saved_items, total_weight = brute_force(knapsack_weight, items)
+    elif algorithm == 2:
+        #botton_up
+        max_benefit, saved_items, total_weight = [0, [], 0]
+        pass
+    else:
+        #top-down
+        max_benefit, saved_items, total_weight = [0, [], 0]
+        pass
+
+    print("The max benefit is: " + str(max_benefit))
+    print("With the items: " + str(saved_items))
+    print("For the weight of: " + str(total_weight))
 
     return 0
 
