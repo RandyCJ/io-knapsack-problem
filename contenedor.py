@@ -83,6 +83,69 @@ def brute_force(knapsack_weight, items):
     best_items = [(x+1, items[x]) for x in range(0, n) if best_items[x] == 1]
     return [best_benefit, best_items, best_weight]
 
+
+def bottom_up(knapsack_weight,items):
+    """ Function that solves the knapsack problem with dynamic programming (bottom_up)
+        E: the knapsack weight and the items
+        S: the max benefit, the items stored in the knapsack and the total 
+        weight of those items
+
+        This is a bottom_up algorithm adaptation from Bhavya Jain
+        https://www.geeksforgeeks.org/0-1-knapsack-problem-dp-10/
+    """
+    wt = []
+    val =[]
+    for i in items:
+        wt.append(i[0])
+        val.append(i[1])
+    
+
+    K = [[0 for x in range(knapsack_weight + 1)] for x in range(len(items) + 1)]
+    
+    best_items = []
+    best_weight = []
+
+    # Build table K[][] in bottom up manner
+    for i in range(len(items) + 1):
+        for w in range(knapsack_weight + 1):
+            if i == 0 or w == 0:
+                K[i][w] = 0
+            elif wt[i-1] <= w:
+                K[i][w] = max(val[i-1]
+                          + K[i-1][w-wt[i-1]], 
+                              K[i-1][w])
+            else:
+                K[i][w] = K[i-1][w]
+    best_benefit = K[len(items)][knapsack_weight]
+    
+    #Find the items entered in the backpack (bottom_up)
+    items.reverse()
+    current_knapsack_weight = 0
+    i = 0
+    while i < len(items):
+        if K[-1][-1] not in K[-2] and i == 0:
+            best_items.append((len(K)-1,(items[i])))
+            current_knapsack_weight = items[i][0]
+            previous_benefit = K[-1][-1]
+            K.pop(-1)
+            
+        elif (previous_benefit - items[i-1][1]) not in K[-2] and knapsack_weight > (current_knapsack_weight + items[i][0]):
+            best_items.append((len(K)-1,(items[i])))
+            previous_benefit = previous_benefit - items[i-1][1]
+            current_knapsack_weight = current_knapsack_weight + items[i][0]
+            K.pop(-1)
+        
+        else:
+            K.pop(-1)
+
+        i += 1
+    
+    best_weight = current_knapsack_weight
+    best_items.sort()
+    
+    return [best_benefit, best_items, best_weight]
+ 
+
 def main(args):
     """ Function that executes the program and receives the arguments
             E: the arguments given in the console
@@ -137,7 +200,7 @@ def main(args):
         max_benefit, saved_items, total_weight = brute_force(knapsack_weight, items)
     elif algorithm == 2:
         #botton_up
-        max_benefit, saved_items, total_weight = [0, [], 0]
+        max_benefit, saved_items, total_weight = bottom_up(knapsack_weight,items) 
         pass
     else:
         #top-down
