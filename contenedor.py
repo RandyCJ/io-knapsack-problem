@@ -124,7 +124,7 @@ def bottom_up(knapsack_weight,items):
     return [best_benefit, best_items, best_weight]
 
 def top_down(knapsack_weight, items):
-    """ Function that solves the knapsack problem with top-down
+    """ Function that prepares matrix for recursion
             E: the knapsack weight and the items
             S: the max benefit, the items stored in the knapsack and the total 
             weight of those items
@@ -134,7 +134,11 @@ def top_down(knapsack_weight, items):
 
 
 def top_down_recursive(matrix, knapsack_weight, items, ind):
-
+    """ Function that solves the knapsack problem with top-down
+            E: the knapsack weight, the items, the matrix and the index
+            S: the best benefit, the items stored in the knapsack and the total
+            weight of those items
+    """
     if knapsack_weight <= 0 or ind >= len(items):
         return 0
 
@@ -145,10 +149,30 @@ def top_down_recursive(matrix, knapsack_weight, items, ind):
     if items[ind][0] <= knapsack_weight:
         profit1 = items[ind][1] + top_down_recursive(matrix, knapsack_weight - items[ind][0], items, ind + 1)
 
-    # recursive call after excluding the element at the currentIndex
     profit2 = top_down_recursive(matrix, knapsack_weight, items, ind + 1)
 
     matrix[ind][knapsack_weight] = max(profit1, profit2)
+
+    if matrix[0][-1] != -1:
+        matrix.append([0 for x in range(len(matrix[0]))])
+        max_benefit = matrix[ind][knapsack_weight]
+        best_benefits_ind = []
+        i = 0
+        while max_benefit != 0:
+            if matrix[i][-1] != max_benefit:
+                best_benefits_ind.append(i-1)
+                max_benefit = max_benefit - items[i-1][1]
+            i += 1
+        
+        best_benefit = matrix[ind][knapsack_weight]
+        best_weight = 0
+        for i in best_benefits_ind:
+            best_weight += items[i][0]
+        
+        best_items = []
+        for i in best_benefits_ind:
+            best_items.append((i+1, items[i]))
+        return [best_benefit, best_items, best_weight]
     return matrix[ind][knapsack_weight]
 
 def find_items(matrix, items, knapsack_weight):
@@ -167,7 +191,7 @@ def find_items(matrix, items, knapsack_weight):
             previous_benefit = matrix[-1][-1]
             matrix.pop(-1)
             
-        elif (previous_benefit - items[i-1][1]) not in matrix[-2] and knapsack_weight > (current_knapsack_weight + items[i][0]):
+        elif (previous_benefit - items[i-1][1]) not in matrix[-2] and knapsack_weight >= (current_knapsack_weight + items[i][0]):
             best_items.append((len(matrix)-1,(items[i])))
             previous_benefit = previous_benefit - items[i-1][1]
             current_knapsack_weight = current_knapsack_weight + items[i][0]
@@ -241,8 +265,6 @@ def main(args):
         pass
     else:
         #top-down
-        print(top_down(knapsack_weight, items))
-        quit()
         max_benefit, saved_items, total_weight = top_down(knapsack_weight,items) 
         pass
 
