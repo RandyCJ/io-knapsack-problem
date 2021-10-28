@@ -119,32 +119,68 @@ def bottom_up(knapsack_weight,items):
     best_benefit = K[len(items)][knapsack_weight]
     
     #Find the items entered in the backpack (bottom_up)
+    best_weight, best_items = find_items(K, items, knapsack_weight)
+    
+    return [best_benefit, best_items, best_weight]
+
+def top_down(knapsack_weight, items):
+    """ Function that solves the knapsack problem with top-down
+            E: the knapsack weight and the items
+            S: the max benefit, the items stored in the knapsack and the total 
+            weight of those items
+    """
+    n = len(items)
+
+    #Matrix used for Memoization
+    tmp = [[0 for x in range(knapsack_weight + 1)] for x in range(n + 1)] 
+
+    for i in range(n + 1):
+        for j in range(knapsack_weight + 1): 
+            if i == 0 or j == 0: 
+                tmp[i][j] = 0
+            elif items[i-1][0] <= j:
+                max_chosen = max(items[i-1][1]  + tmp[i-1][j-items[i-1][0]],  tmp[i-1][j])
+                tmp[i][j] = max_chosen
+            else: 
+                tmp[i][j] = tmp[i-1][j]
+    
+    #Find the items entered in the backpack
+    best_benefit = tmp[n][knapsack_weight]
+    best_weight, best_items = find_items(tmp, items, knapsack_weight)
+    
+    return [best_benefit, best_items, best_weight]
+
+def find_items(matrix, items, knapsack_weight):
+    """ Gets stored knapsack items from matrix 
+            E: A matrix from bottom-up or top-down, the items and the knapsack weight
+            S: The weight and the items in the knapsack
+    """
     items.reverse()
+    best_items = []
     current_knapsack_weight = 0
     i = 0
     while i < len(items):
-        if K[-1][-1] not in K[-2] and i == 0:
-            best_items.append((len(K)-1,(items[i])))
+        if matrix[-1][-1] not in matrix[-2] and i == 0:
+            best_items.append((len(matrix)-1,(items[i])))
             current_knapsack_weight = items[i][0]
-            previous_benefit = K[-1][-1]
-            K.pop(-1)
+            previous_benefit = matrix[-1][-1]
+            matrix.pop(-1)
             
-        elif (previous_benefit - items[i-1][1]) not in K[-2] and knapsack_weight > (current_knapsack_weight + items[i][0]):
-            best_items.append((len(K)-1,(items[i])))
+        elif (previous_benefit - items[i-1][1]) not in matrix[-2] and knapsack_weight > (current_knapsack_weight + items[i][0]):
+            best_items.append((len(matrix)-1,(items[i])))
             previous_benefit = previous_benefit - items[i-1][1]
             current_knapsack_weight = current_knapsack_weight + items[i][0]
-            K.pop(-1)
+            matrix.pop(-1)
         
         else:
-            K.pop(-1)
+            matrix.pop(-1)
 
         i += 1
     
     best_weight = current_knapsack_weight
     best_items.sort()
-    
-    return [best_benefit, best_items, best_weight]
- 
+
+    return [best_weight, best_items]
 
 def main(args):
     """ Function that executes the program and receives the arguments
@@ -204,7 +240,7 @@ def main(args):
         pass
     else:
         #top-down
-        max_benefit, saved_items, total_weight = [0, [], 0]
+        max_benefit, saved_items, total_weight = top_down(knapsack_weight,items) 
         pass
 
     print("The max benefit is: " + str(max_benefit))
