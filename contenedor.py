@@ -177,23 +177,27 @@ def find_items(matrix, items, knapsack_weight):
     best_items = []
     current_knapsack_weight = 0
     i = 0
+    j = 0
     previous_benefit = 0
     while i < len(items):
+        
         if matrix[-1][-1] not in matrix[-2] and i == 0:
             best_items.append((len(matrix)-1,(items[i])))
             current_knapsack_weight = items[i][0]
             previous_benefit = matrix[-1][-1]
             matrix.pop(-1)
             
-        elif (previous_benefit - items[i-1][1]) not in matrix[-2] and knapsack_weight >= (current_knapsack_weight + items[i][0]):
+        elif (previous_benefit - items[j-1][1]) not in matrix[-2] and knapsack_weight >= (current_knapsack_weight + items[i][0]):
             best_items.append((len(matrix)-1,(items[i])))
             previous_benefit = previous_benefit - items[i-1][1]
             current_knapsack_weight = current_knapsack_weight + items[i][0]
             matrix.pop(-1)
         
         else:
+            j -= 1
             matrix.pop(-1)
-
+        
+        j += 1
         i += 1
     
     best_weight = current_knapsack_weight
