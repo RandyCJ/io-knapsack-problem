@@ -109,7 +109,7 @@ def bottom_up(knapsack_weight,items):
                 matrix[i][w] = max(benefits[i-1] + matrix[i-1][w-weights[i-1]],matrix[i-1][w])
             else:
                 matrix[i][w] = matrix[i-1][w]
-    best_benefit = matrix[len(items)][knapsack_weight]
+    best_benefit = matrix[-1][-1]
     
     #Find the items entered in the backpack (bottom_up)
     best_weight, best_items = find_items(matrix, items, knapsack_weight)
@@ -173,37 +173,22 @@ def find_items(matrix, items, knapsack_weight):
             E: A matrix from bottom-up or top-down, the items and the knapsack weight
             S: The weight and the items in the knapsack
     """
-    items.reverse()
-    best_items = []
-    current_knapsack_weight = 0
-    i = 0
-    j = 0
-    previous_benefit = 0
-    while i < len(items):
-        
-        if matrix[-1][-1] not in matrix[-2] and i == 0:
-            best_items.append((len(matrix)-1,(items[i])))
-            current_knapsack_weight = items[i][0]
-            previous_benefit = matrix[-1][-1]
-            matrix.pop(-1)
-            
-        elif (previous_benefit - items[j-1][1]) not in matrix[-2] and knapsack_weight >= (current_knapsack_weight + items[i][0]):
-            best_items.append((len(matrix)-1,(items[i])))
-            previous_benefit = previous_benefit - items[i-1][1]
-            current_knapsack_weight = current_knapsack_weight + items[i][0]
-            matrix.pop(-1)
-        
-        else:
-            j -= 1
-            matrix.pop(-1)
-        
-        j += 1
-        i += 1
-    
-    best_weight = current_knapsack_weight
-    best_items.sort()
 
-    return [best_weight, best_items]
+    best_items = []
+    i = len(matrix)-1
+    k = len(matrix[0])-1
+    current_weight = 0
+
+    while i!=0 and k!=0:
+        if matrix[i-1][k] != matrix[i][k]:
+            best_items.append((i, items[i-1]))
+            k -= items[i-1][0]
+            current_weight += items[i-1][0]
+        i -= 1
+    best_items.reverse()
+
+    return [current_weight, best_items]
+
 
 def perform_iterations(iterations, algorithm, knapsack_weight, items):
     total_time = float(0)
@@ -235,13 +220,33 @@ def average_time():
     iterations = 50
     items = generate_items(number_of_items, weight_range, benefit_range)
 
-    brute_force_avg = perform_iterations(iterations, 1, knapsack_weight, items)
-    bottom_up_avg = perform_iterations(iterations, 2, knapsack_weight, items)
-    #top_down_avg = perform_iterations(iterations, 3, knapsack_weight, items)
+    # brute_force_avg = perform_iterations(iterations, 1, knapsack_weight, items)
+    # bottom_up_avg = perform_iterations(iterations, 2, knapsack_weight, items)
+    # #top_down_avg = perform_iterations(iterations, 3, knapsack_weight, items)
 
-    print("Brute force average time: " + str(brute_force_avg))
-    print("Bottom-up average time: " + str(bottom_up_avg))
-    #print("Top-down average time: " + str(top_down_avg))
+    # print("Brute force average time: " + str(brute_force_avg))
+    # print("Bottom-up average time: " + str(bottom_up_avg))
+    # print("Top-down average time: " + str(top_down_avg))
+
+    print("Testing that the algorithms have the same answer")
+
+    max_benefit_bf, saved_items_bf, total_weight_bf = brute_force(knapsack_weight, items)
+    max_benefit_bu, saved_items_bu, total_weight_bu = bottom_up(knapsack_weight, items)
+
+    # print("\nBrute force")
+    # print("The max benefit is: " + str(max_benefit_bf))
+    # print("With the items: " + str(saved_items_bf))
+    # print("For the weight of: " + str(total_weight_bf))
+    
+    print("\nBrute force")
+    print("The max benefit is: " + str(max_benefit_bf))
+    print("With the items: " + str(saved_items_bf))
+    print("For the weight of: " + str(total_weight_bf))
+
+    print("\nBottom-up")
+    print("The max benefit is: " + str(max_benefit_bu))
+    print("With the items: " + str(saved_items_bu))
+    print("For the weight of: " + str(total_weight_bu))
 
 def main(args):
     """ Function that executes the program and receives the arguments
