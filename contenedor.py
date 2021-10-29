@@ -52,9 +52,6 @@ def brute_force(knapsack_weight, items):
         E: the knapsack weight and the items
         S: the max benefit, the items stored in the knapsack and the total 
         weight of those items
-
-        This is a brute force algorithm adaptation from Maya Hristakeva and Dipti Shrestha
-        http://www.micsymposium.org/mics_2005/papers/paper102.pdf
     """
     n = len(items)
     best_benefit = 0
@@ -89,37 +86,32 @@ def bottom_up(knapsack_weight,items):
         E: the knapsack weight and the items
         S: the max benefit, the items stored in the knapsack and the total 
         weight of those items
-
-        This is a bottom_up algorithm adaptation from Bhavya Jain
-        https://www.geeksforgeeks.org/0-1-knapsack-problem-dp-10/
     """
-    wt = []
-    val =[]
+    weights = []
+    benefits=[]
     for i in items:
-        wt.append(i[0])
-        val.append(i[1])
+        weights.append(i[0])
+        benefits.append(i[1])
     
 
-    K = [[0 for x in range(knapsack_weight + 1)] for x in range(len(items) + 1)]
+    matrix = [[0 for _ in range(knapsack_weight + 1)] for _ in range(len(items) + 1)]
     
     best_items = []
     best_weight = []
 
-    # Build table K[][] in bottom up manner
+    # Build matriz matrix[][] in bottom up manner
     for i in range(len(items) + 1):
         for w in range(knapsack_weight + 1):
             if i == 0 or w == 0:
-                K[i][w] = 0
-            elif wt[i-1] <= w:
-                K[i][w] = max(val[i-1]
-                          + K[i-1][w-wt[i-1]], 
-                              K[i-1][w])
+                matrix[i][w] = 0
+            elif weights[i-1] <= w:
+                matrix[i][w] = max(benefits[i-1] + matrix[i-1][w-weights[i-1]],matrix[i-1][w])
             else:
-                K[i][w] = K[i-1][w]
-    best_benefit = K[len(items)][knapsack_weight]
+                matrix[i][w] = matrix[i-1][w]
+    best_benefit = matrix[len(items)][knapsack_weight]
     
     #Find the items entered in the backpack (bottom_up)
-    best_weight, best_items = find_items(K, items, knapsack_weight)
+    best_weight, best_items = find_items(matrix, items, knapsack_weight)
     
     return [best_benefit, best_items, best_weight]
 
