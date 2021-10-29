@@ -2,6 +2,7 @@ import sys
 from sympy import Rational
 from random import randrange
 import copy
+from timeit import default_timer as timer
 
 def read_file(file_name):
     """ Function in charge or reading the txt file
@@ -121,7 +122,7 @@ def top_down(knapsack_weight, items):
             S: the max benefit, the items stored in the knapsack and the total 
             weight of those items
     """
-    tmp = [[-1 for i in range(knapsack_weight + 1)] for j in range(len(items))]
+    tmp = [[-1 for _ in range(knapsack_weight + 1)] for _ in range(len(items))]
     return top_down_recursive(tmp, knapsack_weight, items, 0)
 
 
@@ -176,6 +177,7 @@ def find_items(matrix, items, knapsack_weight):
     best_items = []
     current_knapsack_weight = 0
     i = 0
+    previous_benefit = 0
     while i < len(items):
         if matrix[-1][-1] not in matrix[-2] and i == 0:
             best_items.append((len(matrix)-1,(items[i])))
@@ -199,11 +201,50 @@ def find_items(matrix, items, knapsack_weight):
 
     return [best_weight, best_items]
 
+def perform_iterations(iterations, algorithm, knapsack_weight, items):
+    total_time = float(0)
+
+    for _ in range(iterations):
+        if algorithm == 1:
+            start = timer()
+            brute_force(knapsack_weight, items)
+            end = timer()
+            total_time += end - start
+        elif algorithm == 2:
+            start = timer()
+            bottom_up(knapsack_weight, items)
+            end = timer()
+            total_time += end - start
+        else:
+            start = timer()
+            top_down(knapsack_weight, items)
+            end = timer()
+            total_time += end - start
+    
+    return total_time / iterations
+
+def average_time():
+    knapsack_weight = 200
+    number_of_items = 17
+    weight_range = [20, 35]
+    benefit_range = [45, 70]
+    iterations = 50
+    items = generate_items(number_of_items, weight_range, benefit_range)
+
+    brute_force_avg = perform_iterations(iterations, 1, knapsack_weight, items)
+    bottom_up_avg = perform_iterations(iterations, 2, knapsack_weight, items)
+    #top_down_avg = perform_iterations(iterations, 3, knapsack_weight, items)
+
+    print("Brute force average time: " + str(brute_force_avg))
+    print("Bottom-up average time: " + str(bottom_up_avg))
+    #print("Top-down average time: " + str(top_down_avg))
+
 def main(args):
     """ Function that executes the program and receives the arguments
             E: the arguments given in the console
             S: N/A
     """
+
     if len(args) > 2: 
         if not(args[1].isdigit()): #Algorithm validation
             print("First argument must be an integer between 1,2,3")
@@ -241,7 +282,8 @@ def main(args):
         items = generate_items(number_of_items, weight_range, benefit_range)
 
     else:
-        print("Please read the file 'README.MD' to learn how to execute the program")
+        #print("Please read the file 'README.MD' to learn how to execute the program")
+        average_time()
         quit()
 
     print("Algorithm: " + str(algorithm))
@@ -252,13 +294,9 @@ def main(args):
     if algorithm == 1:
         max_benefit, saved_items, total_weight = brute_force(knapsack_weight, items)
     elif algorithm == 2:
-        #bottom_up
         max_benefit, saved_items, total_weight = bottom_up(knapsack_weight,items) 
-        pass
     else:
-        #top-down
         max_benefit, saved_items, total_weight = top_down(knapsack_weight,items) 
-        pass
 
     print("The max benefit is: " + str(max_benefit))
     print("With the items: " + str(saved_items))
