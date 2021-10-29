@@ -112,7 +112,7 @@ def bottom_up(knapsack_weight,items):
     best_benefit = matrix[-1][-1]
     
     #Find the items entered in the backpack (bottom_up)
-    best_weight, best_items = find_items(matrix, items, knapsack_weight)
+    best_weight, best_items = find_items(matrix, items)
     
     return [best_benefit, best_items, best_weight]
 
@@ -168,7 +168,7 @@ def top_down_recursive(matrix, knapsack_weight, items, ind):
         return [best_benefit, best_items, best_weight]
     return matrix[ind][knapsack_weight]
 
-def find_items(matrix, items, knapsack_weight):
+def find_items(matrix, items):
     """ Gets stored knapsack items from matrix 
             E: A matrix from bottom-up or top-down, the items and the knapsack weight
             S: The weight and the items in the knapsack
