@@ -6,8 +6,8 @@ from timeit import default_timer as timer
 
 def read_file(file_name):
     """ Function in charge or reading the txt file
-        E: string with the problem's path
-        S: a list with the knapsack weight and a list of tuples with the
+        I: string with the problem's path
+        O: a list with the knapsack weight and a list of tuples with the
             weight and benefits of each item
     """
     items = []
@@ -34,8 +34,8 @@ def read_file(file_name):
 def generate_items(number_of_items, weight_range, benefit_range):
     """ Function that generates a number of items with a random weight 
         and benefit
-        E: number of items to generate, the weight and benefit range
-        S: a list of tuples with the weight and benefits of each item
+        I: number of items to generate, the weight and benefit range
+        O: a list of tuples with the weight and benefits of each item
     """
     items = []
 
@@ -50,8 +50,8 @@ def brute_force(knapsack_weight, items):
     """ Function that solves the knapsack problem with brute force, using a 
         list of 0's and 1's that represent all the posibles combinations of
         the items
-        E: the knapsack weight and the items
-        S: the max benefit, the items stored in the knapsack and the total 
+        I: the knapsack weight and the items
+        O: the max benefit, the items stored in the knapsack and the total 
         weight of those items
     """
     n = len(items)
@@ -84,8 +84,8 @@ def brute_force(knapsack_weight, items):
 
 def bottom_up(knapsack_weight,items):
     """ Function that solves the knapsack problem with dynamic programming (bottom_up)
-        E: the knapsack weight and the items
-        S: the max benefit, the items stored in the knapsack and the total 
+        I: the knapsack weight and the items
+        O: the max benefit, the items stored in the knapsack and the total 
         weight of those items
     """
     weights = []
@@ -118,80 +118,52 @@ def bottom_up(knapsack_weight,items):
 
 def top_down(knapsack_weight, items):
     """ Function that prepares matrix for recursion
-            E: the knapsack weight and the items
-            S: the max benefit, the items stored in the knapsack and the total 
-            weight of those items
-    """
+        I: the knapsack weight and the items
+        O: the max benefit, the items stored in the knapsack and the total 
+           weight of those items
+     """
     tmp_ben = [[-1 for _ in range(knapsack_weight + 1)] for _ in range(len(items))]
+    max_benefit, index_selected_items = top_down_recursive(tmp_ben, knapsack_weight, items, 0, [])
 
-    return top_down_recursive([], tmp_ben, knapsack_weight, items, 0,)
-
-
-def top_down_recursive(list_items, matrix, knapsack_weight, items, ind):
-    """ Function that solves the knapsack problem with top-down
-            E: The knapsack weight, the items, the matrix, the index and the listed items in the knapsack
-            S: The best benefit, the items stored in the knapsack and the total
-            weight of those items
-    """
-
-    #Base case
-    if knapsack_weight <= 0 or ind >= len(items):
-        return 0
-
-    if matrix[ind][knapsack_weight] != -1:
-        return matrix[ind][knapsack_weight]
-
-    profit1 = 0
-    #When includes the item
-    if items[ind][0] <= knapsack_weight:
-        profit1 = items[ind][1] + top_down_recursive(list_items, matrix, knapsack_weight - items[ind][0], items, ind + 1)
-        #We only add possible items to the list when it could be in the knapsack
-        list_items.append((profit1, ind))
-
-    #When excludes the item
-    profit2 = top_down_recursive(list_items, matrix, knapsack_weight, items, ind + 1)
-
-    #We choose the best path
-    max_profit = max(profit1, profit2)
-    matrix[ind][knapsack_weight] = max_profit
-
-    #When the problem is over we find the items
-    if matrix[0][-1] != -1:
-        best_benefits_ind = find_items_top_down(list_items, items, matrix[0][-1])
-        best_benefit = matrix[ind][knapsack_weight]
-        best_weight = 0
-        for i in best_benefits_ind:
-            best_weight += items[i][0]
-        
-        best_items = []
-        for i in best_benefits_ind:
-            best_items.append((i+1, items[i]))
-        return [best_benefit, best_items, best_weight]
+    weight = 0
+    best_items = []
+    for index in index_selected_items:
+        best_items.append((index+1, items[index]))
+        weight += items[index][0]
     
-    return matrix[ind][knapsack_weight]
+    return [max_benefit, best_items, weight]
 
-def find_items_top_down(list_items, items, max_benefit):
-    """ Function looks for the best items in the backpack
-            E: The items listed, the items and the max benefit
-            S: The indexes of the best items
+def top_down_recursive(matrix, knapsack_weight, items, ind, items_indexes):
+    """ Function that solves the knapsack problem with top-down
+        I: The knapsack weight, the items, the matrix, the index and the listed items in the knapsack
+        O: The best benefit and the indexes of the items stored in the knapsack
     """
-    best_benefits_ind = []
+    if ind >= len(items) or knapsack_weight <= 0:
+        return [0, items_indexes]
 
-    #Looks for the one equal to the best benefit
-    #It will have the item included in that iteration
-    #Saves the item index and readjusts the benefit
-    while max_benefit != 0:
-        for i in list_items:
-            if i[0] == max_benefit and i[1] not in best_benefits_ind:
-                max_benefit = max_benefit - items[i[1]][1]
-                best_benefits_ind.append(i[1])
+    if knapsack_weight < items[ind][0]:
+        matrix[ind][knapsack_weight], selected_items = top_down_recursive(matrix, knapsack_weight, items, ind+1, items_indexes)
+    else:
+        tmp = copy.deepcopy(items_indexes)
+        tmp.append(ind)
+        res = top_down_recursive(matrix, knapsack_weight-items[ind][0], items, ind+1, tmp)
+        profit1 = items[ind][1] + res[0]
+        items1 = res[1]
+        profit2, items2 = top_down_recursive(matrix, knapsack_weight, items, ind+1, items_indexes)
 
-    return best_benefits_ind
+        if profit1 >= profit2:
+            matrix[ind][knapsack_weight] = profit1
+            selected_items = items1
+        else:
+            matrix[ind][knapsack_weight] = profit2
+            selected_items = items2
+            
+    return [matrix[ind][knapsack_weight], selected_items]
 
 def find_items(matrix, items):
     """ Gets stored knapsack items from matrix 
-            E: A matrix from bottom-up or top-down, the items and the knapsack weight
-            S: The weight and the items in the knapsack
+        I: A matrix from bottom-up or top-down, the items and the knapsack weight
+        O: The weight and the items in the knapsack
     """
 
     best_items = []
@@ -209,8 +181,11 @@ def find_items(matrix, items):
 
     return [current_weight, best_items]
 
-
 def perform_iterations(iterations, algorithm, knapsack_weight, items):
+    """ Perform n iterations of an algorithm, and estimates the average time
+        I: number of iterations, the algorithm, the knapsack weight and the items
+        O: returns the average time
+    """
     total_time = float(0)
 
     for _ in range(iterations):
@@ -233,45 +208,68 @@ def perform_iterations(iterations, algorithm, knapsack_weight, items):
     return total_time / iterations
 
 def average_time():
+    """ Calculates the average time of the three algorithms
+        I: N/A
+        O: N/A
+    """
     knapsack_weight = 200
-    number_of_items = 17
+    number_of_items = 20
     weight_range = [20, 35]
     benefit_range = [45, 70]
-    iterations = 50
+    iterations = 15
     items = generate_items(number_of_items, weight_range, benefit_range)
+    print("\nITEMS: " + str(items) + "\n")
 
-    # brute_force_avg = perform_iterations(iterations, 1, knapsack_weight, items)
-    # bottom_up_avg = perform_iterations(iterations, 2, knapsack_weight, items)
-    # #top_down_avg = perform_iterations(iterations, 3, knapsack_weight, items)
+    brute_force_avg = perform_iterations(iterations, 1, knapsack_weight, items)
+    bottom_up_avg = perform_iterations(iterations, 2, knapsack_weight, items)
+    top_down_avg = perform_iterations(iterations, 3, knapsack_weight, items)
 
-    # print("Brute force average time: " + str(brute_force_avg))
-    # print("Bottom-up average time: " + str(bottom_up_avg))
-    # print("Top-down average time: " + str(top_down_avg))
+    print("\nBrute force average time: " + str(brute_force_avg))
+    print("Bottom-up average time: " + str(bottom_up_avg))
+    print("Top-down average time: " + str(top_down_avg))
 
-    print("Testing that the algorithms have the same answer")
+    print("\nTesting that the algorithms have the same answer")
 
     max_benefit_bf, saved_items_bf, total_weight_bf = brute_force(knapsack_weight, items)
+    items_benefit_bf = calculate_benefit(saved_items_bf, max_benefit_bf)
     max_benefit_bu, saved_items_bu, total_weight_bu = bottom_up(knapsack_weight, items)
-
-    # print("\nBrute force")
-    # print("The max benefit is: " + str(max_benefit_bf))
-    # print("With the items: " + str(saved_items_bf))
-    # print("For the weight of: " + str(total_weight_bf))
+    items_benefit_bu = calculate_benefit(saved_items_bu, max_benefit_bu)
+    max_benefit_td, saved_items_td, total_weight_td = top_down(knapsack_weight, items)
+    items_benefit_td = calculate_benefit(saved_items_td, max_benefit_td)
     
     print("\nBrute force")
     print("The max benefit is: " + str(max_benefit_bf))
     print("With the items: " + str(saved_items_bf))
-    print("For the weight of: " + str(total_weight_bf))
+    print("Weight: " + str(total_weight_bf))
+    print("Benefit equals to items benefit?: " + str(items_benefit_bf))
 
     print("\nBottom-up")
     print("The max benefit is: " + str(max_benefit_bu))
     print("With the items: " + str(saved_items_bu))
-    print("For the weight of: " + str(total_weight_bu))
+    print("Weight: " + str(total_weight_bu))
+    print("Benefit equals to items benefit?: " + str(items_benefit_bu))
+
+    print("\nTop-down")
+    print("The max benefit is: " + str(max_benefit_td))
+    print("With the items: " + str(saved_items_td))
+    print("Weight: " + str(total_weight_td))
+    print("Benefit equals to items benefit?: " + str(items_benefit_td))
+
+def calculate_benefit(items, benefit):
+    """ Makes sure that the total benefit of the selected items equals to the benefit calculated
+        I: items selected
+        O: True if the benefit of the items equal to the benefit, false if not
+    """
+    items_benefit = 0
+    for _, v in items:
+        items_benefit += v[1]
+    
+    return items_benefit == benefit
 
 def main(args):
     """ Function that executes the program and receives the arguments
-            E: the arguments given in the console
-            S: N/A
+        I: the arguments given in the console
+        O: N/A
     """
 
     if len(args) > 2: 
@@ -319,6 +317,7 @@ def main(args):
     print("Iterations: " + str(iterations))
     print("Knapsack weight: " + str(knapsack_weight))
     print("Items: " + str(items))
+    
 
     if algorithm == 1:
         max_benefit, saved_items, total_weight = brute_force(knapsack_weight, items)
@@ -330,6 +329,7 @@ def main(args):
     print("The max benefit is: " + str(max_benefit))
     print("With the items: " + str(saved_items))
     print("For the weight of: " + str(total_weight))
+    print("Benefit equals to items benefit?: " + str(calculate_benefit(saved_items, max_benefit)))
 
     return 0
 
