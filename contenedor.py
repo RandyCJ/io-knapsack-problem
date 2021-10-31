@@ -182,7 +182,7 @@ def find_items_top_down(list_items, items, max_benefit):
     #Saves the item index and readjusts the benefit
     while max_benefit != 0:
         for i in list_items:
-            if i[0] == max_benefit:
+            if i[0] == max_benefit and i[1] not in best_benefits_ind:
                 max_benefit = max_benefit - items[i[1]][1]
                 best_benefits_ind.append(i[1])
 
