@@ -122,16 +122,19 @@ def top_down(knapsack_weight, items):
             S: the max benefit, the items stored in the knapsack and the total 
             weight of those items
     """
-    tmp = [[-1 for _ in range(knapsack_weight + 1)] for _ in range(len(items))]
-    return top_down_recursive(tmp, knapsack_weight, items, 0)
+    tmp_ben = [[-1 for _ in range(knapsack_weight + 1)] for _ in range(len(items))]
+
+    return top_down_recursive([], tmp_ben, knapsack_weight, items, 0,)
 
 
-def top_down_recursive(matrix, knapsack_weight, items, ind):
+def top_down_recursive(list_items, matrix, knapsack_weight, items, ind):
     """ Function that solves the knapsack problem with top-down
-            E: the knapsack weight, the items, the matrix and the index
-            S: the best benefit, the items stored in the knapsack and the total
+            E: The knapsack weight, the items, the matrix, the index and the listed items in the knapsack
+            S: The best benefit, the items stored in the knapsack and the total
             weight of those items
     """
+
+    #Base case
     if knapsack_weight <= 0 or ind >= len(items):
         return 0
 
@@ -139,24 +142,22 @@ def top_down_recursive(matrix, knapsack_weight, items, ind):
         return matrix[ind][knapsack_weight]
 
     profit1 = 0
+    #When includes the item
     if items[ind][0] <= knapsack_weight:
-        profit1 = items[ind][1] + top_down_recursive(matrix, knapsack_weight - items[ind][0], items, ind + 1)
+        profit1 = items[ind][1] + top_down_recursive(list_items, matrix, knapsack_weight - items[ind][0], items, ind + 1)
+        #We only add possible items to the list when it could be in the knapsack
+        list_items.append((profit1, ind))
 
-    profit2 = top_down_recursive(matrix, knapsack_weight, items, ind + 1)
+    #When excludes the item
+    profit2 = top_down_recursive(list_items, matrix, knapsack_weight, items, ind + 1)
 
-    matrix[ind][knapsack_weight] = max(profit1, profit2)
+    #We choose the best path
+    max_profit = max(profit1, profit2)
+    matrix[ind][knapsack_weight] = max_profit
 
+    #When the problem is over we find the items
     if matrix[0][-1] != -1:
-        matrix.append([0 for x in range(len(matrix[0]))])
-        max_benefit = matrix[ind][knapsack_weight]
-        best_benefits_ind = []
-        i = 0
-        while max_benefit != 0:
-            if matrix[i][-1] != max_benefit:
-                best_benefits_ind.append(i-1)
-                max_benefit = max_benefit - items[i-1][1]
-            i += 1
-        
+        best_benefits_ind = find_items_top_down(list_items, items, matrix[0][-1])
         best_benefit = matrix[ind][knapsack_weight]
         best_weight = 0
         for i in best_benefits_ind:
@@ -166,7 +167,26 @@ def top_down_recursive(matrix, knapsack_weight, items, ind):
         for i in best_benefits_ind:
             best_items.append((i+1, items[i]))
         return [best_benefit, best_items, best_weight]
+    
     return matrix[ind][knapsack_weight]
+
+def find_items_top_down(list_items, items, max_benefit):
+    """ Function looks for the best items in the backpack
+            E: The items listed, the items and the max benefit
+            S: The indexes of the best items
+    """
+    best_benefits_ind = []
+
+    #Looks for the one equal to the best benefit
+    #It will have the item included in that iteration
+    #Saves the item index and readjusts the benefit
+    while max_benefit != 0:
+        for i in list_items:
+            if i[0] == max_benefit:
+                max_benefit = max_benefit - items[i[1]][1]
+                best_benefits_ind.append(i[1])
+
+    return best_benefits_ind
 
 def find_items(matrix, items):
     """ Gets stored knapsack items from matrix 
