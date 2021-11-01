@@ -116,53 +116,9 @@ def bottom_up(knapsack_weight,items):
     
     return [best_benefit, best_items, best_weight]
 
-def top_down(knapsack_weight, items):
-    """ Function that prepares matrix for recursion
-        I: the knapsack weight and the items
-        O: the max benefit, the items stored in the knapsack and the total 
-           weight of those items
-     """
-    tmp_ben = [[-1 for _ in range(knapsack_weight + 1)] for _ in range(len(items))]
-    max_benefit, index_selected_items = top_down_recursive(tmp_ben, knapsack_weight, items, 0, [])
-
-    weight = 0
-    best_items = []
-    for index in index_selected_items:
-        best_items.append((index+1, items[index]))
-        weight += items[index][0]
-    
-    return [max_benefit, best_items, weight]
-
-def top_down_recursive(matrix, knapsack_weight, items, ind, items_indexes):
-    """ Function that solves the knapsack problem with top-down
-        I: The knapsack weight, the items, the matrix, the index and the listed items in the knapsack
-        O: The best benefit and the indexes of the items stored in the knapsack
-    """
-    if ind >= len(items) or knapsack_weight <= 0:
-        return [0, items_indexes]
-
-    if knapsack_weight < items[ind][0]:
-        matrix[ind][knapsack_weight], selected_items = top_down_recursive(matrix, knapsack_weight, items, ind+1, items_indexes)
-    else:
-        tmp = copy.deepcopy(items_indexes)
-        tmp.append(ind)
-        res = top_down_recursive(matrix, knapsack_weight-items[ind][0], items, ind+1, tmp)
-        profit1 = items[ind][1] + res[0]
-        items1 = res[1]
-        profit2, items2 = top_down_recursive(matrix, knapsack_weight, items, ind+1, items_indexes)
-
-        if profit1 >= profit2:
-            matrix[ind][knapsack_weight] = profit1
-            selected_items = items1
-        else:
-            matrix[ind][knapsack_weight] = profit2
-            selected_items = items2
-            
-    return [matrix[ind][knapsack_weight], selected_items]
-
 def find_items(matrix, items):
     """ Gets stored knapsack items from matrix 
-        I: A matrix from bottom-up or top-down, the items and the knapsack weight
+        I: A matrix from bottom-up, the items and the knapsack weight
         O: The weight and the items in the knapsack
     """
 
@@ -180,6 +136,59 @@ def find_items(matrix, items):
     best_items.reverse()
 
     return [current_weight, best_items]
+
+def top_down(knapsack_weight, items):
+    """ Main function of top down algorithm
+        I: the knapsack weight and the items
+        O: the max benefit, the items stored in the knapsack and the total 
+            weight of those items
+    """
+    memoization_dict = {}
+    max_benefit, index_selected_items = top_down_recursive(knapsack_weight, items, 0, memoization_dict)
+    weight = 0
+    best_items = []
+    for index in index_selected_items:
+        best_items.append((index+1, items[index]))
+        weight += items[index][0]
+    best_items.reverse()
+    return [max_benefit, best_items, weight]
+
+def top_down_recursive(knapsack_weight, items, ind, mem_dict):
+    """ Function that solves the knapsack problem with top-down recursive
+        I: The knapsack weight, the items, index of an item and a memoization dictionary
+        O: The best benefit and the index of the items stored in the knapsack
+    """
+    #Base case
+    if ind >= len(items) or knapsack_weight <= 0:
+        return [0, []]
+
+    #Memoization key
+    key = (ind, knapsack_weight)
+
+    #If the key is in dict, no calculation is needed
+    if key in mem_dict.keys():
+        return mem_dict[key]
+
+    profit1 = -1 #in case the item is not included
+    if knapsack_weight >= items[ind][0]:#If the item can be included
+        tmp = top_down_recursive(knapsack_weight-items[ind][0], items, ind+1, mem_dict)
+        profit1 = items[ind][1] + tmp[0]
+        items1 = tmp[1]
+
+    #Benefit of not including the item
+    profit2, items2 = top_down_recursive(knapsack_weight, items, ind+1, mem_dict)
+
+    if profit1 >= profit2:
+        profit = profit1
+        selected_items = copy.deepcopy(items1)
+        selected_items.append(ind)#appending the current item index
+    else:
+        profit = profit2
+        selected_items = copy.deepcopy(items2)
+    
+    #Saving in the dict
+    mem_dict[key] = [profit, selected_items]
+    return [profit, selected_items]
 
 def perform_iterations(iterations, algorithm, knapsack_weight, items):
     """ Perform n iterations of an algorithm, and estimates the average time
@@ -213,10 +222,10 @@ def average_time():
         O: N/A
     """
     knapsack_weight = 200
-    number_of_items = 20
-    weight_range = [20, 35]
+    number_of_items = 16
+    weight_range = [40, 55]
     benefit_range = [45, 70]
-    iterations = 15
+    iterations = 20
     items = generate_items(number_of_items, weight_range, benefit_range)
     print("\nITEMS: " + str(items) + "\n")
 
