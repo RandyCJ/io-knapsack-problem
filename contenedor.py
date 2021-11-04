@@ -1,7 +1,9 @@
 import sys 
+import copy
+import numpy as np
 from sympy import Rational
 from random import randrange
-import copy
+import matplotlib.pyplot as plt
 from timeit import default_timer as timer
 
 def read_file(file_name):
@@ -216,53 +218,65 @@ def perform_iterations(iterations, algorithm, knapsack_weight, items):
     
     return total_time / iterations
 
+def get_bar_chart(knapsack_weight, items, iterations):
+    averages = []
+    labels = ["Brute Force", "Bottom-up", "Top-down"]
+
+    averages.append(perform_iterations(iterations, 1, knapsack_weight, items))
+    averages.append(perform_iterations(iterations, 2, knapsack_weight, items))
+    averages.append(perform_iterations(iterations, 3, knapsack_weight, items))
+
+    print("test averages: " + str(averages))
+    fig = plt.figure()
+    ax = fig.add_axes([0,0,1,1])
+    ax.bar(labels, averages)
+    plt.show()
+
 def average_time():
     """ Calculates the average time of the three algorithms
         I: N/A
         O: N/A
     """
-    knapsack_weight = 200
-    number_of_items = 16
+
+    #First Test
+    print("First", end=" ")
+    knapsack_weight = 100
+    number_of_items = 5
     weight_range = [40, 55]
+    benefit_range = [45, 70]
+    iterations = 100
+    items = generate_items(number_of_items, weight_range, benefit_range)
+    get_bar_chart(knapsack_weight, items, iterations)
+
+    #Second Test
+    print("Second", end=" ")
+    knapsack_weight = 500
+    number_of_items = 10
+    weight_range = [100, 200]
+    benefit_range = [45, 70]
+    iterations = 100
+    items = generate_items(number_of_items, weight_range, benefit_range)
+    get_bar_chart(knapsack_weight, items, iterations)
+
+    #Third Test
+    print("Third", end=" ")
+    knapsack_weight = 1000
+    number_of_items = 15
+    weight_range = [90, 150]
     benefit_range = [45, 70]
     iterations = 20
     items = generate_items(number_of_items, weight_range, benefit_range)
-    print("\nITEMS: " + str(items) + "\n")
+    get_bar_chart(knapsack_weight, items, iterations)
 
-    brute_force_avg = perform_iterations(iterations, 1, knapsack_weight, items)
-    bottom_up_avg = perform_iterations(iterations, 2, knapsack_weight, items)
-    top_down_avg = perform_iterations(iterations, 3, knapsack_weight, items)
-
-    print("\nBrute force average time: " + str(brute_force_avg))
-    print("Bottom-up average time: " + str(bottom_up_avg))
-    print("Top-down average time: " + str(top_down_avg))
-
-    print("\nTesting that the algorithms have the same answer")
-
-    max_benefit_bf, saved_items_bf, total_weight_bf = brute_force(knapsack_weight, items)
-    items_benefit_bf = calculate_benefit(saved_items_bf, max_benefit_bf)
-    max_benefit_bu, saved_items_bu, total_weight_bu = bottom_up(knapsack_weight, items)
-    items_benefit_bu = calculate_benefit(saved_items_bu, max_benefit_bu)
-    max_benefit_td, saved_items_td, total_weight_td = top_down(knapsack_weight, items)
-    items_benefit_td = calculate_benefit(saved_items_td, max_benefit_td)
-    
-    print("\nBrute force")
-    print("The max benefit is: " + str(max_benefit_bf))
-    print("With the items: " + str(saved_items_bf))
-    print("Weight: " + str(total_weight_bf))
-    print("Benefit equals to items benefit?: " + str(items_benefit_bf))
-
-    print("\nBottom-up")
-    print("The max benefit is: " + str(max_benefit_bu))
-    print("With the items: " + str(saved_items_bu))
-    print("Weight: " + str(total_weight_bu))
-    print("Benefit equals to items benefit?: " + str(items_benefit_bu))
-
-    print("\nTop-down")
-    print("The max benefit is: " + str(max_benefit_td))
-    print("With the items: " + str(saved_items_td))
-    print("Weight: " + str(total_weight_td))
-    print("Benefit equals to items benefit?: " + str(items_benefit_td))
+    #Fourth Test
+    print("Fourth", end=" ")
+    knapsack_weight = 200
+    number_of_items = 20
+    weight_range = [30, 55]
+    benefit_range = [45, 70]
+    iterations = 2
+    items = generate_items(number_of_items, weight_range, benefit_range)
+    get_bar_chart(knapsack_weight, items, iterations)
 
 def calculate_benefit(items, benefit):
     """ Makes sure that the total benefit of the selected items equals to the benefit calculated
