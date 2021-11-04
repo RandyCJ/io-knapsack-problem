@@ -220,16 +220,31 @@ def perform_iterations(iterations, algorithm, knapsack_weight, items):
 
 def get_bar_chart(knapsack_weight, items, iterations):
     averages = []
-    labels = ["Brute Force", "Bottom-up", "Top-down"]
+    algorithms = ["Brute Force", "Bottom-up", "Top-down"]
 
     averages.append(perform_iterations(iterations, 1, knapsack_weight, items))
     averages.append(perform_iterations(iterations, 2, knapsack_weight, items))
     averages.append(perform_iterations(iterations, 3, knapsack_weight, items))
 
     print("test averages: " + str(averages))
-    fig = plt.figure()
-    ax = fig.add_axes([0,0,1,1])
-    ax.bar(labels, averages)
+
+    x = np.arange(3)
+    width = 0.35
+    fig, ax = plt.subplots()
+    ax.set_ylabel("Average time (seconds)")
+    ax.set_title("Avegare time per algorithm")
+    ax.set_xticks(x)
+    ax.set_xticklabels(algorithms)
+
+    pps = ax.bar(x - width/2, averages, width, label='Average time')
+    for p in pps:
+        height = p.get_height()
+        ax.annotate('{}'.format(height),
+        xy=(p.get_x() + p.get_width() / 2, height),
+        xytext=(0, 3), # 3 points vertical offset
+        textcoords="offset points",
+        ha='center', va='bottom')
+
     plt.show()
 
 def average_time():
