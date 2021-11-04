@@ -15,11 +15,13 @@ The txt file has to be like
 8,40  
 ```
 
+Dependencies: `pip install -r requirements.txt`
+
 Execution example with a file:
     
   `python contenedor.py algorithm -a file.txt iterations`
 
-  - `algorithm` is an integer where; 1 = Brute Force; 2 = DP Bottom-Up; 3 = DP Top-Down
+  - `algorithm` is an integer where; 1 = Brute Force; 2 = DP Bottom-Up; 3 = DP Top-Down; 4 = All of them
   - `-a file.txt` is a file path with the problem
   - `iterations` is the number of times the program will be executed in order to measure the average time
 
