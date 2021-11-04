@@ -1,4 +1,5 @@
-import sys 
+import sys
+import os.path
 import copy
 import numpy as np
 from sympy import Rational
@@ -241,7 +242,7 @@ def get_bar_chart(knapsack_weight, items, iterations):
     ax.set_title("Average time per algorithm")
     ax.set_xticks(x)
     ax.set_xticklabels(algorithms)
-
+    fig.set_size_inches(18.5, 10.5)
     pps = ax.bar(x - width/2, averages, width, label='Average time')
     for p in pps:
         height = p.get_height()
@@ -251,7 +252,15 @@ def get_bar_chart(knapsack_weight, items, iterations):
         textcoords="offset points",
         ha='center', va='bottom')
 
-    plt.show()
+    ind = 1
+    name = 'diagram_test_'
+    flag = True
+    while flag:
+        if os.path.isfile('images/' + name + str(ind) + '.png'):
+            ind += 1
+        else:
+            plt.savefig('images/' + name + str(ind) + '.png')
+            flag = False
 
 def average_time(knapsack_weight,weight_range,benefit_range,items, iterations):
     """ Calculates the average time of the three algorithms
