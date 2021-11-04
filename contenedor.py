@@ -4,6 +4,7 @@ import numpy as np
 from sympy import Rational
 from random import randrange
 import matplotlib.pyplot as plt
+from tabulate import tabulate
 from timeit import default_timer as timer
 
 def read_file(file_name):
@@ -79,10 +80,10 @@ def brute_force(knapsack_weight, items):
             best_benefit = temp_benefit
             best_weight = temp_weight
             best_items = copy.deepcopy(temp_items)
-    
+    if len(best_items) == 0:
+        return [best_benefit, best_items, best_weight]
     best_items = [(x+1, items[x]) for x in range(0, n) if best_items[x] == 1]
     return [best_benefit, best_items, best_weight]
-
 
 def bottom_up(knapsack_weight,items):
     """ Function that solves the knapsack problem with dynamic programming (bottom_up)
@@ -219,6 +220,10 @@ def perform_iterations(iterations, algorithm, knapsack_weight, items):
     return total_time / iterations
 
 def get_bar_chart(knapsack_weight, items, iterations):
+    """ Output the bar plot chart with the averages times of the algortihms
+        I: knapsack weight, items and iterations 
+        O: N/A
+    """
     averages = []
     algorithms = ["Brute Force", "Bottom-up", "Top-down"]
 
@@ -226,13 +231,14 @@ def get_bar_chart(knapsack_weight, items, iterations):
     averages.append(perform_iterations(iterations, 2, knapsack_weight, items))
     averages.append(perform_iterations(iterations, 3, knapsack_weight, items))
 
-    print("test averages: " + str(averages))
+    print("Averages times: \n")
+    print(tabulate([list(map(str,averages))], headers=["Brute Force", "Bottom-Up", "Top-Down"]))
 
     x = np.arange(3)
     width = 0.35
     fig, ax = plt.subplots()
     ax.set_ylabel("Average time (seconds)")
-    ax.set_title("Avegare time per algorithm")
+    ax.set_title("Average time per algorithm")
     ax.set_xticks(x)
     ax.set_xticklabels(algorithms)
 
@@ -247,49 +253,14 @@ def get_bar_chart(knapsack_weight, items, iterations):
 
     plt.show()
 
-def average_time():
+def average_time(knapsack_weight,weight_range,benefit_range,items, iterations):
     """ Calculates the average time of the three algorithms
-        I: N/A
+        I: knapsack weight, weight range, benefit range , items and iterations 
         O: N/A
     """
 
-    #First Test
-    print("First", end=" ")
-    knapsack_weight = 100
-    number_of_items = 5
-    weight_range = [40, 55]
-    benefit_range = [45, 70]
-    iterations = 100
-    items = generate_items(number_of_items, weight_range, benefit_range)
-    get_bar_chart(knapsack_weight, items, iterations)
-
-    #Second Test
-    print("Second", end=" ")
-    knapsack_weight = 500
-    number_of_items = 10
-    weight_range = [100, 200]
-    benefit_range = [45, 70]
-    iterations = 100
-    items = generate_items(number_of_items, weight_range, benefit_range)
-    get_bar_chart(knapsack_weight, items, iterations)
-
-    #Third Test
-    print("Third", end=" ")
-    knapsack_weight = 1000
-    number_of_items = 15
-    weight_range = [90, 150]
-    benefit_range = [45, 70]
-    iterations = 20
-    items = generate_items(number_of_items, weight_range, benefit_range)
-    get_bar_chart(knapsack_weight, items, iterations)
-
-    #Fourth Test
-    print("Fourth", end=" ")
-    knapsack_weight = 200
-    number_of_items = 20
-    weight_range = [30, 55]
-    benefit_range = [45, 70]
-    iterations = 2
+    #Tests of algorithms
+    number_of_items = len(items)
     items = generate_items(number_of_items, weight_range, benefit_range)
     get_bar_chart(knapsack_weight, items, iterations)
 
@@ -304,6 +275,19 @@ def calculate_benefit(items, benefit):
     
     return items_benefit == benefit
 
+def print_items(items,flag_initial):
+    """ Print items in a table
+        I: items and flag 
+        O: N/A
+    """
+    if flag_initial == 0:
+        list_items = [[x+1, items[x][0], items[x][1]] for x in range(0, len(items))]
+    
+    else:
+        list_items=[[x, y[0], y[1]] for x,y in items]
+    
+    print (tabulate(list_items, headers=["Num_Item", "Weight", "Benefit"]))
+    
 def main(args):
     """ Function that executes the program and receives the arguments
         I: the arguments given in the console
@@ -312,16 +296,19 @@ def main(args):
 
     if len(args) > 2: 
         if not(args[1].isdigit()): #Algorithm validation
-            print("First argument must be an integer between 1,2,3")
+            print("First argument must be an integer between 1,2,3,4")
             quit()
         if not(args[-1].isdigit()): #Iterations validation
             print("Last argument must be an integer")
             quit()
-        algorithm = Rational(args[1])
-        if algorithm not in [1, 2, 3]: #Algorithm validation
-            print("First argument must be an integer between 1,2,3")
+        if int(args[-1]) <= 0: #Iterations validation
+            print("Last argument must be greater than 0")
             quit()
-        iterations = Rational(args[-1])
+        algorithm = int(args[1])
+        if algorithm not in [1, 2, 3, 4]: #Algorithm validation
+            print("First argument must be an integer between 1,2,3,4")
+            quit()
+        iterations = int(args[-1])
 
     if len(args) == 5: # if it's for reading a file
         if args[2] != "-a":
@@ -336,38 +323,54 @@ def main(args):
         if not(args[3].isdigit()):#Knapsack weight
             print("Third argument must be an integer")
             quit()
+        if int(args[3]) <= 0:#Knapsack weight
+            print("Knapsack weight argument must be greater than 0")
+            quit()
         if not(args[4].isdigit()):#Number of items
             print("Fourth argument must be an integer")
             quit()
+        if int(args[4]) <= 0:#Number of items
+            print("Number of items argument must be greater than 0")
+            quit()
+        
 
-        knapsack_weight = Rational(args[3])
+        knapsack_weight = int(args[3])
         number_of_items = int(args[4])
         weight_range = list(map(int, args[5].split("-")))
         benefit_range = list(map(int, args[6].split("-")))
         items = generate_items(number_of_items, weight_range, benefit_range)
 
     else:
-        #print("Please read the file 'README.MD' to learn how to execute the program")
-        average_time()
+        print("Please read the file 'README.MD' to learn how to execute the program")
         quit()
 
-    print("Algorithm: " + str(algorithm))
+    print("\nAlgorithm: " + str(algorithm))
     print("Iterations: " + str(iterations))
     print("Knapsack weight: " + str(knapsack_weight))
-    print("Items: " + str(items))
-    
+    print("Items: \n")
+    print_items(items,0)
+    print("")
 
     if algorithm == 1:
         max_benefit, saved_items, total_weight = brute_force(knapsack_weight, items)
     elif algorithm == 2:
-        max_benefit, saved_items, total_weight = bottom_up(knapsack_weight,items) 
-    else:
+        max_benefit, saved_items, total_weight = bottom_up(knapsack_weight,items)
+    elif algorithm == 3: 
         max_benefit, saved_items, total_weight = top_down(knapsack_weight,items) 
-
+    elif algorithm == 4 and args[2] == "-p":
+        average_time(knapsack_weight,weight_range,benefit_range,items, iterations)
+        quit()
+    else:
+        print("Algorithm 4 is not allowed when opening a file")
+        quit()
+    
+    time = perform_iterations(iterations,algorithm,knapsack_weight,items)
     print("The max benefit is: " + str(max_benefit))
-    print("With the items: " + str(saved_items))
-    print("For the weight of: " + str(total_weight))
-    print("Benefit equals to items benefit?: " + str(calculate_benefit(saved_items, max_benefit)))
+    print("With the items: \n")
+    print_items(saved_items,1)
+    print("")
+    print("Weight: " + str(total_weight))
+    print("Average time in seconds: " + str(time))
 
     return 0
 
