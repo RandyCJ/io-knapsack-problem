@@ -364,13 +364,16 @@ def main(args):
         max_benefit, saved_items, total_weight = brute_force(knapsack_weight, items)
     elif algorithm == 2:
         max_benefit, saved_items, total_weight = bottom_up(knapsack_weight,items)
-    elif algorithm == 3: 
+    elif algorithm == 3:
         max_benefit, saved_items, total_weight = top_down(knapsack_weight,items) 
     elif algorithm == 4 and args[2] == "-p":
         average_time(knapsack_weight,weight_range,benefit_range,items, iterations)
         quit()
+    elif algorithm == 4 and args[2] == "-a":
+        get_bar_chart(knapsack_weight, items, iterations)
+        quit()
     else:
-        print("Algorithm 4 is not allowed when opening a file")
+        print("Please read the file 'README.MD' to learn how to execute the program")
         quit()
     
     time = perform_iterations(iterations,algorithm,knapsack_weight,items)
