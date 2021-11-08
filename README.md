@@ -1,5 +1,7 @@
 # io-knapsack-problem
 
+Dependencies: `pip install -r requirements.txt`
+
 Example of a file:  
 Given a knapsack with weight = 30  
 5 items with weights: 5, 15, 10, 10, 8  
@@ -14,8 +16,6 @@ The txt file has to be like
 10,62  
 8,40  
 ```
-
-Dependencies: `pip install -r requirements.txt`
 
 Execution example with a file:
     

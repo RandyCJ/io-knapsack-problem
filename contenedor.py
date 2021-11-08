@@ -1,11 +1,11 @@
 import sys
-import os.path
 import copy
+import os.path
 import numpy as np
 from sympy import Rational
 from random import randrange
-import matplotlib.pyplot as plt
 from tabulate import tabulate
+import matplotlib.pyplot as plt
 from timeit import default_timer as timer
 
 def read_file(file_name):
@@ -204,35 +204,53 @@ def perform_iterations(iterations, algorithm, knapsack_weight, items):
     for _ in range(iterations):
         if algorithm == 1:
             start = timer()
-            brute_force(knapsack_weight, items)
+            benefit, saved_items, total_weight = brute_force(knapsack_weight, items)
             end = timer()
             total_time += end - start
         elif algorithm == 2:
             start = timer()
-            bottom_up(knapsack_weight, items)
+            benefit, saved_items, total_weight = bottom_up(knapsack_weight, items)
             end = timer()
             total_time += end - start
         else:
             start = timer()
-            top_down(knapsack_weight, items)
+            benefit, saved_items, total_weight = top_down(knapsack_weight, items)
             end = timer()
             total_time += end - start
     
-    return total_time / iterations
+    return [total_time / iterations, benefit, saved_items, total_weight]
 
 def get_bar_chart(knapsack_weight, items, iterations):
     """ Output the bar plot chart with the averages times of the algortihms
         I: knapsack weight, items and iterations 
         O: N/A
     """
-    averages = []
     algorithms = ["Brute Force", "Bottom-up", "Top-down"]
 
-    averages.append(perform_iterations(iterations, 1, knapsack_weight, items))
-    averages.append(perform_iterations(iterations, 2, knapsack_weight, items))
-    averages.append(perform_iterations(iterations, 3, knapsack_weight, items))
+    brute_force_results = perform_iterations(iterations, 1, knapsack_weight, items)
+    bottom_up_results = perform_iterations(iterations, 2, knapsack_weight, items)
+    top_down_results = perform_iterations(iterations, 3, knapsack_weight, items)
+    averages = [brute_force_results[0], bottom_up_results[0], top_down_results[0]]
 
-    print("Averages times: \n")
+    print("\nBrute Force Results")
+    print("Max Benefit: " + str(brute_force_results[1]))
+    print("With the items: \n")
+    print_items(brute_force_results[2], 1)
+    print("\nWeight: " + str(brute_force_results[3]))
+
+    print("\nBottom-Up Results")
+    print("Max Benefit: " + str(bottom_up_results[1]))
+    print("With the items: \n")
+    print_items(bottom_up_results[2], 1)
+    print("\nWeight: " + str(bottom_up_results[3]))
+
+    print("\nTop-Down Results")
+    print("Max Benefit: " + str(top_down_results[1]))
+    print("With the items: \n")
+    print_items(top_down_results[2], 1)
+    print("\nWeight: " + str(top_down_results[3]))
+
+    print("\nAverages times: \n")
     print(tabulate([list(map(str,averages))], headers=["Brute Force", "Bottom-Up", "Top-Down"]))
 
     x = np.arange(3)
@@ -262,17 +280,6 @@ def get_bar_chart(knapsack_weight, items, iterations):
             plt.savefig('images/' + name + str(ind) + '.png')
             flag = False
 
-def average_time(knapsack_weight,weight_range,benefit_range,items, iterations):
-    """ Calculates the average time of the three algorithms
-        I: knapsack weight, weight range, benefit range , items and iterations 
-        O: N/A
-    """
-
-    #Tests of algorithms
-    number_of_items = len(items)
-    items = generate_items(number_of_items, weight_range, benefit_range)
-    get_bar_chart(knapsack_weight, items, iterations)
-
 def calculate_benefit(items, benefit):
     """ Makes sure that the total benefit of the selected items equals to the benefit calculated
         I: items selected
@@ -284,7 +291,7 @@ def calculate_benefit(items, benefit):
     
     return items_benefit == benefit
 
-def print_items(items,flag_initial):
+def print_items(items, flag_initial):
     """ Print items in a table
         I: items and flag 
         O: N/A
@@ -296,7 +303,7 @@ def print_items(items,flag_initial):
         list_items=[[x, y[0], y[1]] for x,y in items]
     
     print (tabulate(list_items, headers=["Num_Item", "Weight", "Benefit"]))
-    
+
 def main(args):
     """ Function that executes the program and receives the arguments
         I: the arguments given in the console
@@ -357,32 +364,20 @@ def main(args):
     print("Iterations: " + str(iterations))
     print("Knapsack weight: " + str(knapsack_weight))
     print("Items: \n")
-    print_items(items,0)
+    print_items(items, 0)
     print("")
 
-    if algorithm == 1:
-        max_benefit, saved_items, total_weight = brute_force(knapsack_weight, items)
-    elif algorithm == 2:
-        max_benefit, saved_items, total_weight = bottom_up(knapsack_weight,items)
-    elif algorithm == 3:
-        max_benefit, saved_items, total_weight = top_down(knapsack_weight,items) 
-    elif algorithm == 4 and args[2] == "-p":
-        average_time(knapsack_weight,weight_range,benefit_range,items, iterations)
-        quit()
-    elif algorithm == 4 and args[2] == "-a":
+    if algorithm == 4:
         get_bar_chart(knapsack_weight, items, iterations)
         quit()
-    else:
-        print("Please read the file 'README.MD' to learn how to execute the program")
-        quit()
-    
-    time = perform_iterations(iterations,algorithm,knapsack_weight,items)
-    print("The max benefit is: " + str(max_benefit))
+
+    avg_time, max_benefit, saved_items, total_weight = perform_iterations(iterations, algorithm, knapsack_weight, items)
+
+    print("Max Benefit: " + str(max_benefit))
     print("With the items: \n")
-    print_items(saved_items,1)
-    print("")
-    print("Weight: " + str(total_weight))
-    print("Average time in seconds: " + str(time))
+    print_items(saved_items, 1)
+    print("\nWeight: " + str(total_weight))
+    print("Average Time: " + str(avg_time))
 
     return 0
 
